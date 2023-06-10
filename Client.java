@@ -13,26 +13,31 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.*;
-public class Client extends JFrame{
 
-    BufferedReader br;//for extracing stream from client socket
-    PrintWriter out;//For Outputting stream 
+public class Client extends JFrame {
+
+    BufferedReader br;// for extracing stream from client socket
+    PrintWriter out;// For Outputting stream
     Socket socket;
 
-    private JLabel heading  = new JLabel("Client Area");
+    private JLabel heading = new JLabel("Client Area");
     private JTextArea messageArea = new JTextArea();
-    //private JTextField messageInput = new JTextField();
+    // private JTextField messageInput = new JTextField();
     private JTextArea messageInput = new JTextArea();
     private Font font = new Font("Roboto", Font.PLAIN, 20);
 
-    public Client(){
+    public Client() {
 
         try {
-            
+
             System.out.println("Sending request to server");
 
-            //using below line, request will be sent to server at port 7777
-            socket = new Socket("127.0.0.1", 7777);
+            // Below host/IP Address is for local computer but can be configured with other
+            // IP Address when server is running on different machine/Network
+            String ip = JOptionPane.showInputDialog(this, "Enter IP Address of Server");
+            // using below line, request will be sent to server at port 7777
+            socket = new Socket(ip, 7777);
+            // Local machine ip, 127.0.0.1" i.e when server n client are on same machine.
 
             System.out.println("connection done");
 
@@ -43,37 +48,38 @@ public class Client extends JFrame{
             handleEvents();
             startReading();
 
-            // startWriting(); 
-            // Above func implements terminal based writing mode which is now replaced by GUI and handleEvent func
-            
+            // startWriting();
+            // Above func implements terminal based writing mode which is now replaced by
+            // GUI and handleEvent func
+
         } catch (Exception e) {
-            
+
         }
     }
 
-    //Handling Events
-    private void handleEvents(){
+    // Handling Events
+    private void handleEvents() {
 
         messageInput.addKeyListener(new KeyListener() {
 
             @Override
             public void keyTyped(KeyEvent e) {
-               
+
             }
 
             @Override
             public void keyPressed(KeyEvent e) {
-            
+
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
 
-                ///"Enter" keyCode is 10
-                if(e.getKeyCode() == 10){
+                /// "Enter" keyCode is 10
+                if (e.getKeyCode() == 10) {
                     String contentToSend = messageInput.getText();
 
-                    if(contentToSend.equals("exit")){
+                    if (contentToSend.equals("exit")) {
                         messageInput.setEnabled(false);
                         messageArea.setText("Connection Closed..");
                     }
@@ -82,132 +88,134 @@ public class Client extends JFrame{
                     out.print(contentToSend);
                     out.flush();
 
-                    
                     messageInput.setText("");
                     messageInput.requestFocus();
                 }
             }
-            
+
         });
     }
 
-    //GUI Function
-    private void createGUI(){
+    // GUI Function
+    private void createGUI() {
 
-        //this tells about the window
+        // this tells about the window
         this.setTitle("Client[END]");
         this.getContentPane().setBackground(Color.CYAN);
-        
+
         this.setSize(700, 700);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        //coding for components
+        // coding for components
         heading.setFont(font);
         messageArea.setFont(font);
 
-        //Beloe func will help in autoscrolling scrollbar
+        // Beloe func will help in autoscrolling scrollbar
         messageArea.setCaretPosition(messageArea.getDocument().getLength());
 
         messageArea.setLineWrap(true);
         messageArea.setWrapStyleWord(true);
         messageInput.setLineWrap(true);
-        messageInput.setWrapStyleWord(true); 
+        messageInput.setWrapStyleWord(true);
         messageInput.setFont(font);
-        messageInput.setBorder(BorderFactory.createMatteBorder(10, 5, 10 , 5, Color.cyan));
-        
+        messageInput.setBorder(BorderFactory.createMatteBorder(10, 5, 10, 5, Color.cyan));
+
         heading.setIcon(new ImageIcon("chat.png"));
         heading.setHorizontalTextPosition(SwingConstants.CENTER);
         heading.setVerticalTextPosition(SwingConstants.BOTTOM);
         heading.setHorizontalAlignment(SwingConstants.CENTER);
         heading.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        
-        //below function set uneditable messageArea
-        messageArea.setEditable(false);
-        //messageInput.setHorizontalAlignment(SwingConstants.CENTER);
 
-        //frame layout
+        // below function set uneditable messageArea
+        messageArea.setEditable(false);
+        // messageInput.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // frame layout
         this.setLayout(new BorderLayout());
 
-        //Adding the components to frame
+        // Adding the components to frame
         this.add(heading, BorderLayout.NORTH);
         JScrollPane jScrollPane = new JScrollPane(messageArea);
         this.add(jScrollPane, BorderLayout.CENTER);
         this.add(messageInput, BorderLayout.SOUTH);
 
-
         this.setVisible(true);
     }
-   
-    //Below two func needs to be performed simulataneously
-    public void startReading(){
 
-        //thread - reads stream 
-        Runnable r1 = ()->{
+    // Below two func needs to be performed simulataneously
+    public void startReading() {
+
+        // thread - reads stream
+        Runnable r1 = () -> {
 
             System.out.println("Reader started");
-            try{
-            while(!socket.isClosed()){
-                
-                
-                String msg = br.readLine();
-                if(msg.equals("exit")){
-                    //System.out.println("Server terminated the chat");
-                    JOptionPane.showMessageDialog(this, "Server Terminated the chat");
-                    messageInput.setEnabled(false);
-                    socket.close();
-                    break;
-                }
+            try {
+                while (!socket.isClosed()) {
 
-               //System.out.println("Server: " + msg); 
-               messageArea.append("Server : " + msg + "\n");
-               
+                    String msg = br.readLine();
+                    if (msg.equals("exit")) {
+                        // System.out.println("Server terminated the chat");
+                        JOptionPane.showMessageDialog(this, "Server Terminated the chat");
+                        messageInput.setEnabled(false);
+                        socket.close();
+                        break;
+                    }
+
+                    // System.out.println("Server: " + msg);
+                    messageArea.append("Server : " + msg + "\n");
+
+                }
+            } catch (Exception e) {
+                // e.printStackTrace();
+                System.out.println("Closing Connection...");
             }
-        }
-        catch(Exception e){
-            //e.printStackTrace();
-            System.out.println("Closing Connection...");
-        }
         };
 
         new Thread(r1).start();
     }
 
-    public void startWriting(){
+    public void startWriting() {
 
-        //thread - server start writing data for client
-        Runnable r2 = ()->{
+        // thread - server start writing data for client
+        Runnable r2 = () -> {
 
             System.out.println("Writer started");
 
-            try{
-            while(!socket.isClosed()){
-                
-                    BufferedReader br1 = new BufferedReader(new InputStreamReader(System.in));//take from console
-                    String content  = br1.readLine();
+            try {
+                while (!socket.isClosed()) {
+
+                    BufferedReader br1 = new BufferedReader(new InputStreamReader(System.in));// take from console
+                    String content = br1.readLine();
                     out.println(content);
                     out.flush();
 
-                    if(content.equals("exit")){
+                    if (content.equals("exit")) {
                         socket.close();
                         break;
                     }
-                 
+
+                }
+            } catch (Exception e) {
+                // e.printStackTrace();
+                System.out.println("Closing connection...");
             }
-        }
-        catch(Exception e){
-            //e.printStackTrace();
-            System.out.println("Closing connection...");
-        }
         };
 
         new Thread(r2).start();
     }
 
     public static void main(String[] args) {
-        
+
         System.out.println("this is client...");
         new Client();
     }
 
 }
+
+// ## Steps:
+// ### 1. Make Server
+// ### 2. Make Client
+// ### 3. Request for Connection
+// ### 4. Extract Input/Output Streams
+// ### 5. Perform Read/Write Operation 
